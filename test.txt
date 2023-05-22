@@ -1,0 +1,32 @@
+trigger ContactTriggerRollupSummary29April on Contact (after insert, after update, after delete, after undelete) {
+    
+    set<Id> accSetId=new Set<Id>();
+    
+    if((trigger.isInsert || trigger.isUndelete) &&  trigger.isAfter){
+        for(contact objcon:trigger.new){
+            if(objcon.AccountId!=null){
+                accSetId.add(objcon.AccountId);  
+            } 
+        }
+    }
+    if( (trigger.Isdelete ||trigger.isUpdate) && trigger.isAfter){
+        for(contact objcon:trigger.old){
+            if(objcon.AccountId!=null){
+                accSetId.add(objcon.AccountId);
+            }
+          }
+        }
+   Map<Id,Account> accMap=new Map<Id,Account>();
+    if(!accSetId.isEmpty()){
+        for(Account acc:[select Id, Number_of_Contacts__c,(select id, AccountId from contacts)from Account where Id IN:accSetId ]){
+            accMap.put(acc.id, acc);
+            acc.Number_of_Contacts__c=acc.contacts.size();
+        }
+    }
+      
+    if(!accMap.isEmpty())    {
+    Database.update(accMap.values(), false);
+    }   
+}
+
+adhafjhdshjj
